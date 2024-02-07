@@ -33,7 +33,7 @@ fn main() {
         Ok(mut running) => {
             loop{
                 let _ = running.game_tick();
-                sleep(Duration::from_millis(1000))
+                sleep(Duration::from_millis(2000))
             };
         }
         Err(e) => {

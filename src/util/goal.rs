@@ -4,7 +4,14 @@ pub mod goal {
     use crate::MinerRobot;
 
     impl MinerRobot {
-        pub fn get_goal_by_content(&mut self, goal_type: GoalType, content: Content, goal_quantity: u32) {
+        /// Creates a new goal for the robot and adds it to the robot's goal tracker
+        ///
+        /// # Arguments
+        ///
+        /// * `goal_type` - the type of goal that will get created
+        /// * `content` - the content associated to the goal
+        /// * `goal_quantity` - the quantity necessary to complete the goal
+        pub fn set_goal_by_content(&mut self, goal_type: GoalType, content: Content, goal_quantity: u32) {
             self.goal_tracker.add_goal(Goal::new(
                 Self::get_goal_name_by_content(&content),
                 Self::get_goal_description_by_content(&content),
@@ -13,7 +20,16 @@ pub mod goal {
                 goal_quantity
             ));
         }
-        fn get_goal_name_by_content(content: &Content) -> String{
+        /// Returns the goal's name given a content
+        ///
+        /// # Arguments
+        ///
+        /// * `content` - the content associated to the goal
+        ///
+        /// # Returns
+        ///
+        /// A string that represents the goal's name
+        fn get_goal_name_by_content(content: &Content) -> String {
             String::from(match content {
                 Content::Bank(_) => { "Looking for Bank" }
                 Content::Bin(_) => { "Looking for Bin" }
@@ -33,7 +49,16 @@ pub mod goal {
                 Content::None => { "Looking for None" }
             })
         }
-        fn get_goal_description_by_content(content: &Content) -> String{
+        /// Returns the goal's description given a content
+        ///
+        /// # Arguments
+        ///
+        /// * `content` - the content associated to the goal
+        ///
+        /// # Returns
+        ///
+        /// A string that represents the goal's description
+        fn get_goal_description_by_content(content: &Content) -> String {
             String::from(match content {
                 Content::Bank(_) => { "Going to the Bank" }
                 Content::Bin(_) => { "Using the bin" }

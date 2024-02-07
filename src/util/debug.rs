@@ -4,7 +4,11 @@ pub mod debug {
     use robotics_lib::world::tile::Content;
     use robotics_lib::interface::robot_map;
     impl MinerRobot {
-        // method for debug purpose, prints all the discovered tiles
+        /// Prints all the discovered tiles
+        ///
+        /// # Arguments
+        ///
+        /// * `world` - the world
         pub fn print_discovered_tiles(&self, world: &World) {
             for (i, row) in robot_map(world).unwrap().iter().enumerate() {
                 for (j, tile) in row.iter().enumerate() {
@@ -24,7 +28,11 @@ pub mod debug {
             }
             println!();
         }
-        // method for debug purpose, prints the corresponding letter for the Content contained in a tile
+        /// Prints the respective letter to the content given
+        ///
+        /// # Arguments
+        ///
+        /// * `content` - the content that is getting printed
         fn print_content(content: Content){
             print!("{}", match content {
                 Content::Bank(_) => { "A" }
