@@ -62,9 +62,10 @@ pub mod pathfind {
         /// The robot moves until it reaches the tile near the target and then it destroys the target's content
         pub fn move_to_tile_destroy_content(&mut self, world: &mut World, vec: Vec<(usize, (usize, usize))>) {
             let (_cost,(x,y));
+            // if the vector is not empty then we take the first element which is the one that costs less to go to
             if vec.len() > 0 {
                 (_cost,(x,y)) = vec[0];
-            } else {
+            } else { // otherwise we return
                 println!("The content vector is empty");
                 return;
             }
@@ -81,7 +82,6 @@ pub mod pathfind {
                 }
             };
 
-            // printing the action vec:
             for (i,action) in action_vec.iter().enumerate() {
                 let direction = self.action_to_direction(action);
                 // calling the destroy if the robot is facing the tile containting Content
@@ -90,15 +90,16 @@ pub mod pathfind {
                         Ok(quantity) => {
                             play_sound_mining_rock();
                             println!("{:?} quantity of the content has been added to your backpack", quantity);
+                            // updating the rock count and the goal tracker
                             self.update_rock_count();
                             self.goal_tracker.update_manual(GoalType::GetItems,Some(Content::Rock(0)),quantity);
-                            self.goal_tracker.clean_completed_goals();
                         }
                         Err(e) => {
                             println!("Error while destroying content: {:?}", e);
                         }
                     } ;
                 }
+                // moving the robot to Direction and returning an error message in case of failure
                 let msg = format!("Failed to move {:?}", direction);
                 go(self,world,direction.clone()).expect(msg.as_str());
             }

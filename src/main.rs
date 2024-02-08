@@ -20,7 +20,7 @@ use worldgen_unwrap::public::WorldgeneratorUnwrap; // world generator
 use holy_crab_davide_ai::MinerRobot;
 
 fn main() {
-    let mut wg = WorldgeneratorUnwrap::init(false, Some(PathBuf::from("world/smallworld.bin")));
+    let mut wg = WorldgeneratorUnwrap::init(false, Some(PathBuf::from("world/islands.bin")));
     let (map, position, _environmental_conditions, _score, _score_table) = wg.gen();
 
     let _world_dim = map.len();

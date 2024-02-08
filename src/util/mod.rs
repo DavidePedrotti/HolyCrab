@@ -1,4 +1,6 @@
-pub mod debug;
-pub mod goal;
-pub mod pathfind;
-pub mod world;
+mod debug;
+mod goal;
+mod pathfinding;
+mod world;
+mod island;
+mod bridge;
