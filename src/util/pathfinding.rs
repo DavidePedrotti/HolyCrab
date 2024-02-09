@@ -1,12 +1,47 @@
-pub mod pathfind {
-    use crate::{MinerRobot};
-    use sense_and_find_by_rustafariani::Action;
+pub mod path_find {
+    // MinerRobot
+    use crate::{MinerRobot, RobotState, SCAN_INCREASE};
+
+    // robotics lib
     use robotics_lib::interface::{destroy, go, Direction};
     use robotics_lib::world::{tile::Content, World};
+
+    // tools
+    use sense_and_find_by_rustafariani::Action;
     use bob_lib::tracker::*;
     use OwnerSheeps_Sound_Tool::functions::destroying_sound::play_sound_mining_rock;
 
     impl MinerRobot {
+        /// Moves the robot to a target tile and collects the specified Content present in that tile
+        ///
+        /// # Arguments
+        ///
+        /// * `world` - the world
+        /// * `content` - the content that we want to collect
+        ///
+        /// # Notes
+        ///
+        /// If the coordinates are the same after calling the move it means that the content vector is empty.
+        /// The way that this issue is handled is by:
+        /// - increasing the distance
+        /// - setting the self.scanned value to false in order to call the discover once again
+        /// we increase the distance and reset the scanned value to false in order to call the discover once again
+        pub fn move_and_collect_content(&mut self, world: &mut World, content: Content) {
+            // getting the vector that contains the cost to reach tiles from the robot's coordinates
+            let vec = self.get_cost_vector_to_content(world, content);
+
+            // moving the robot on the target tile and collecting the content
+            let (row,col) = self.get_coordinates();
+            self.state = RobotState::CollectingRocks;
+            self.move_to_tile_destroy_content(world, vec);
+            let (new_row,new_col) = self.get_coordinates();
+
+            if (row,col) == (new_row,new_col) {
+                println!("Increased scan");
+                self.scan_distance += SCAN_INCREASE;
+                self.world_scanned = false;
+            }
+        }
         /// Generates and returns the vector that associates coordinates containing Content, with the cost to reach them
         ///
         /// # Arguments
@@ -40,7 +75,7 @@ pub mod pathfind {
                         }
                     },
                     None => {
-                        println!("Unreachable tile")
+                        // println!("Unreachable tile")
                     }
                 };
             }
@@ -70,10 +105,6 @@ pub mod pathfind {
                 return;
             }
 
-            let coords = self.get_coordinates();
-
-            println!("\nStarted {:?}. Goal: {:?}", coords, (x,y));
-
             let action_vec = match self.lssf.get_action_vec(x,y){
                 Ok(vec) => vec,
                 Err(e) => {
@@ -84,12 +115,11 @@ pub mod pathfind {
 
             for (i,action) in action_vec.iter().enumerate() {
                 let direction = self.action_to_direction(action);
-                // calling the destroy if the robot is facing the tile containting Content
+                // calling the destroy if the robot is facing the tile containing Content
                 if i == action_vec.len() - 1 {
                     match destroy(self, world, direction.clone()) {
                         Ok(quantity) => {
                             play_sound_mining_rock();
-                            println!("{:?} quantity of the content has been added to your backpack", quantity);
                             // updating the rock count and the goal tracker
                             self.update_rock_count();
                             self.goal_tracker.update_manual(GoalType::GetItems,Some(Content::Rock(0)),quantity);

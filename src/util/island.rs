@@ -1,6 +1,8 @@
 pub mod island {
+    // MinerRobot
     use crate::{MinerRobot};
-    use std::fmt::Debug;
+
+    // robotics lib
     use robotics_lib::world::tile::{Tile, TileType};
 
     impl MinerRobot {
@@ -37,9 +39,9 @@ pub mod island {
             visited[row as usize][col as usize] = true;
             island_cells.push((row, col));
 
-            for (dr, dc) in directions {
-                let new_row = row + dr;
-                let new_col = col + dc;
+            for (offset_row, offset_col) in directions {
+                let new_row = row + offset_row;
+                let new_col = col + offset_col;
                 if self.is_valid_move(map, new_row, new_col, visited) {
                     self.dfs(map, new_row, new_col, visited, island_cells);
                 }
@@ -84,20 +86,20 @@ pub mod island {
         /// An Option of Vec. The vector represents the closest island to the robot
         pub fn find_closest_island(&mut self, islands:  &mut Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>> {
             let (robot_row, robot_col) = self.get_coordinates();
-            // looking for the island where the robot is located
+
             let robot_island = islands
                 .iter()
                 .find(|island| island.contains(&(robot_row as i32, robot_col as i32)))
                 .cloned();
 
-            // keeping all the islands but the robot's
             islands.retain(|island| island != &robot_island.clone().unwrap());
 
             if let Some(_robot_island) = robot_island {
-                // the closest island is calculated as the absolute difference between coordinates
+                // finding the island with the coordinate that is closer to the robot
                 let closest_island = islands.iter().min_by_key(|island| {
-                    island.iter().map(|(row, col)| (row - robot_row as i32).abs() + (col - robot_col as i32).abs()).sum::<i32>()
+                    island.iter().map(|(row, col)| (row - robot_row as i32).abs() + (col - robot_col as i32).abs()).min().unwrap()
                 });
+
                 closest_island.cloned()
             } else {
                 None
@@ -107,12 +109,13 @@ pub mod island {
         ///
         /// # Arguments
         ///
+        /// * `map` - the known map
         /// * `vec` - the target island
         ///
         /// # Returns
         ///
         /// A tuple containing the coordinate of the closest tile to the robot's coordinates
-        pub fn find_closest_tile(&mut self, vec: Option<Vec<(i32, i32)>>) -> (i32,i32) {
+        pub fn find_closest_tile(&mut self, map: &Vec<Vec<Tile>>, vec: Option<Vec<(i32, i32)>>) -> (i32,i32) {
             let mut min_cost = usize::MAX;
             let mut closest= (0,0);
             match vec {
@@ -121,7 +124,7 @@ pub mod island {
                 }
                 Some(vector) => {
                     for (row,col) in vector.iter() {
-                        let cost = self.get_paving_cost((*row,*col));
+                        let cost = self.get_paving_cost(map,(*row,*col));
                         if cost < min_cost {
                             min_cost = cost;
                             closest = (*row,*col);

@@ -1,5 +1,8 @@
 pub mod world {
+    // MinerRobot
     use crate::{MinerRobot, World};
+
+    // robotics lib
     use robotics_lib::interface::robot_map;
     use robotics_lib::world::tile::{Content, Tile, TileType};
     impl MinerRobot {

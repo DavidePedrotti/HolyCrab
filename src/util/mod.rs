@@ -4,3 +4,4 @@ mod pathfinding;
 mod world;
 mod island;
 mod bridge;
+mod discovery;

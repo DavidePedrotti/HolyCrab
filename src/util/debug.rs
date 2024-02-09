@@ -1,8 +1,13 @@
 pub mod debug {
+    // MinerRobot
     use crate::MinerRobot;
+
+    // robotics lib
     use robotics_lib::world::World;
     use robotics_lib::world::tile::{Content, TileType};
     use robotics_lib::interface::robot_map;
+
+    // other
     use colored::Colorize;
     impl MinerRobot {
         /// Prints all the discovered tiles content
@@ -96,11 +101,11 @@ pub mod debug {
                 Content::None => { "+ " }
             })
         }
-        /// Prints the respective letter to the tiletype given
+        /// Prints the respective letter to the TileType given
         ///
         /// # Arguments
         ///
-        /// * `tile_type` - the tiletype that is getting printed
+        /// * `tile_type` - the TileType that is getting printed
         fn print_tile_type(tile_type: TileType) {
             print!("{}", match tile_type {
                 TileType::DeepWater => { "D ".blue() }

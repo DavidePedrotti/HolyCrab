@@ -1,9 +1,25 @@
 pub mod goal {
-    use bob_lib::tracker::{Goal, GoalType};
-    use robotics_lib::world::tile::Content;
+    // MinerRobot
     use crate::MinerRobot;
+    use crate::GOAL_QUANTITY;
+
+    // robotics lib
+    use robotics_lib::world::tile::Content;
+
+    // tool
+    use bob_lib::tracker::{Goal, GoalType};
+
 
     impl MinerRobot {
+        /// Sets a new goal if the tracker is empty, otherwise it cleans the completed goals
+        pub fn handle_goals(&mut self) {
+            if self.goal_tracker.get_goals().len() == 0 {
+                self.set_goal_by_content(GoalType::GetItems, Content::Rock(0), GOAL_QUANTITY);
+            } else {
+                self.goal_tracker.clean_completed_goals();
+                println!("Completed goals cleared: {:?}", self.goal_tracker.get_goals());
+            }
+        }
         /// Creates a new goal for the robot and adds it to the robot's goal tracker
         ///
         /// # Arguments
