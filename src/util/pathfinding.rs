@@ -25,6 +25,8 @@ pub mod path_find {
         /// The way that this issue is handled is by:
         /// - increasing the distance
         /// - setting the self.scanned value to false in order to call the discover once again
+        /// - getting all the content around the robot
+        /// - trying to collect rocks
         /// we increase the distance and reset the scanned value to false in order to call the discover once again
         pub fn move_and_collect_content(&mut self, world: &mut World, content: Content) {
             // getting the vector that contains the cost to reach tiles from the robot's coordinates
@@ -38,8 +40,12 @@ pub mod path_find {
 
             if (row,col) == (new_row,new_col) {
                 println!("Increased scan");
+                const RANGE: usize = 3;
+                const DIRECTION: Direction = Direction::Up;
                 self.scan_distance += SCAN_INCREASE;
                 self.world_scanned = false;
+                self.collect_all(world,RANGE);
+                self.collect_rocks_inline(world,DIRECTION);
             }
         }
         /// Generates and returns the vector that associates coordinates containing Content, with the cost to reach them

@@ -31,6 +31,8 @@ pub mod debug {
             let discovered_tiles = self.get_map(world);
             let closest_tile = self.find_closest_tile(&discovered_tiles,closest);
             let rocks_to_build_bridge = self.get_paving_cost(&discovered_tiles, closest_tile);
+            println!("Closest tile: {:?}", closest_tile);
+            println!("Cost: {:?}", rocks_to_build_bridge);
             if self.rocks_collected > rocks_to_build_bridge {
                 self.state = RobotState::PavingBridge;
                 self.build_along_row_and_col(world, &discovered_tiles, closest_tile.0, closest_tile.1);
@@ -54,19 +56,25 @@ pub mod debug {
             let (robot_row,robot_col) = self.get_coordinates();
             let row_distance = robot_row as i32 - row;
             let col_distance = robot_col as i32 - col;
+            let mut row_direction = Direction::Up;
+            let mut col_direction = Direction::Right;
+
+            if row_distance < 0 {
+                row_direction = Direction::Down;
+            } else if row_distance > 0 {
+                row_direction = Direction::Up;
+            }
+            if col_distance < 0 {
+                col_direction = Direction::Right;
+            } else if col_distance > 0 {
+                col_direction = Direction::Left;
+            }
 
             // building following rows
-            if row_distance < 0 {
-                self.build_to_direction(world,map,row_distance,Direction::Down);
-            } else if row_distance > 0 {
-                self.build_to_direction(world,map,row_distance,Direction::Up);
-            }
+            self.build_to_direction(world,map,row_distance,row_direction);
+
             // building following columns
-            if col_distance < 0 {
-                self.build_to_direction(world,map,col_distance,Direction::Right);
-            } else if col_distance > 0 {
-                self.build_to_direction(world,map,col_distance,Direction::Left);
-            }
+            self.build_to_direction(world,map,col_distance,col_direction);
         }
         /// Builds a bridge given a direction and a distance
         ///
