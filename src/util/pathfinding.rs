@@ -40,12 +40,14 @@ pub mod path_find {
 
             if (row,col) == (new_row,new_col) {
                 println!("Increased scan");
-                const RANGE: usize = 3;
+                const RANGE: usize = 2;
                 const DIRECTION: Direction = Direction::Up;
                 self.scan_distance += SCAN_INCREASE;
                 self.world_scanned = false;
                 self.collect_all(world,RANGE);
-                self.collect_rocks_inline(world,DIRECTION);
+                if self.scan_distance > (SCAN_INCREASE * 5) {
+                    self.collect_rocks_inline(world,DIRECTION);
+                }
             }
         }
         /// Generates and returns the vector that associates coordinates containing Content, with the cost to reach them
@@ -128,7 +130,7 @@ pub mod path_find {
                             play_sound_mining_rock();
                             // updating the rock count and the goal tracker
                             self.update_rock_count();
-                            self.goal_tracker.update_manual(GoalType::GetItems,Some(Content::Rock(0)),quantity);
+                            self.goal_tracker.update_manual(GoalType::GetItems,Some(Content::Rock(1)),quantity);
                         }
                         Err(e) => {
                             println!("Error while destroying content: {:?}", e);
@@ -149,7 +151,7 @@ pub mod path_find {
         /// # Returns
         ///
         /// The corresponding direction
-        fn action_to_direction(&self, action: &Action) -> Direction {
+        pub fn action_to_direction(&self, action: &Action) -> Direction {
             match action {
                 Action::North => Direction::Up,
                 Action::East => Direction::Right,

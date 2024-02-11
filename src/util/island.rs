@@ -3,7 +3,7 @@ pub mod island {
     use crate::{MinerRobot};
 
     // robotics lib
-    use robotics_lib::world::tile::{Tile, TileType};
+    use robotics_lib::world::tile::Tile;
 
     impl MinerRobot {
         /// Verifies if a position is valid or not
@@ -21,7 +21,7 @@ pub mod island {
         fn is_valid_move(&self, map: &Vec<Vec<Tile>>, row: i32, col: i32, visited: &Vec<Vec<bool>>) -> bool {
             let rows = map.len() as i32;
             let cols = map[0].len() as i32;
-            row >= 0 && col >= 0 && row < rows && col < cols && map[row as usize][col as usize].tile_type != TileType::DeepWater && !visited[row as usize][col as usize]
+            row >= 0 && col >= 0 && row < rows && col < cols && self.is_walkable(&map[row as usize][col as usize].tile_type) && !visited[row as usize][col as usize]
         }
 
         /// Implementation of the Depth-First Search algorithm
@@ -56,7 +56,7 @@ pub mod island {
         ///
         /// # Returns
         ///
-        /// A vector of vector of tuples which contains all the islands represented as vectors of (i32,i32)
+        /// A vector of islands
         pub fn find_island_cells(&self, map: &Vec<Vec<Tile>>) -> Vec<Vec<(i32, i32)>> {
             let rows = map.len() as i32;
             let cols = map[0].len() as i32;
@@ -65,7 +65,7 @@ pub mod island {
 
             for i in 0..rows {
                 for j in 0..cols {
-                    if map[i as usize][j as usize].tile_type != TileType::DeepWater && !visited[i as usize][j as usize] {
+                    if self.is_walkable(&map[i as usize][j as usize].tile_type) && !visited[i as usize][j as usize] {
                         let mut island_cells = Vec::new();
                         self.dfs(map, i, j, &mut visited, &mut island_cells);
                         islands_cells.push(island_cells);
@@ -83,14 +83,11 @@ pub mod island {
         ///
         /// # Returns
         ///
-        /// An Option of Vec. The vector represents the closest island to the robot
+        /// An Option of Vec of tuples. The vector represents the closest island to the robot
         pub fn find_closest_island(&mut self, islands:  &mut Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>> {
             let (robot_row, robot_col) = self.get_coordinates();
 
-            let robot_island = islands
-                .iter()
-                .find(|island| island.contains(&(robot_row as i32, robot_col as i32)))
-                .cloned();
+            let robot_island = self.get_robot_island(&islands);
 
             islands.retain(|island| island != &robot_island.clone().unwrap());
 
@@ -105,35 +102,51 @@ pub mod island {
                 None
             }
         }
-        /// Finds the closest tile to the robot
+        /// Finds the closest distance between the robot's island and the target island
         ///
         /// # Arguments
-        ///
-        /// * `map` - the known map
-        /// * `vec` - the target island
+        /// * `map` - the known world
+        /// * `robot_island` - the island where the robot stands
+        /// * `target_island` - the closest island to the robot
         ///
         /// # Returns
         ///
-        /// A tuple containing the coordinate of the closest tile to the robot's coordinates
-        pub fn find_closest_tile(&mut self, map: &Vec<Vec<Tile>>, vec: Option<Vec<(i32, i32)>>) -> (i32,i32) {
-            let mut min_cost = usize::MAX;
-            let mut closest= (0,0);
-            match vec {
-                None => {
-                    println!("The vector in find_closest_tile was None")
-                }
-                Some(vector) => {
-                    for (row,col) in vector.iter() {
-                        let cost = self.get_paving_cost(map,(*row,*col));
-                        if cost < min_cost {
-                            min_cost = cost;
-                            closest = (*row,*col);
+        /// An option of coordinates indicating the closest walkable tiles that would connect the two islands if there was a bridge
+        pub fn find_closest_points(&self, map: &Vec<Vec<Tile>>, robot_island: Vec<(i32, i32)>, target_island: Vec<(i32, i32)>) -> Option<((i32, i32), (i32, i32))> {
+
+            let mut closest_coords = None;
+            let mut min_distance = i32::MAX;
+
+            for (target_row,target_col) in target_island {
+                for (row,col) in &robot_island {
+                    if self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) && self.is_walkable(&map[*row as usize][*col as usize].tile_type) {
+                        let distance = (target_row - row).abs() + (target_col - col).abs();
+                        if distance < min_distance {
+                            min_distance = distance;
+                            closest_coords = Some(((target_row,target_col), (*row,*col)));
                         }
                     }
                 }
             }
-            closest
+
+            closest_coords
+        }
+
+        /// Returns the island where the robot is located
+        ///
+        /// # Arguments
+        ///
+        /// * `islands` - the discovered islands
+        ///
+        /// # Returns
+        ///
+        /// An option of Vec of coordinates, indicating the robot's island
+        pub fn get_robot_island(&mut self, islands:  &Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>>{
+            let (robot_row, robot_col) = self.get_coordinates();
+
+            islands.iter()
+                    .find(|island| island.contains(&(robot_row as i32, robot_col as i32)))
+                    .cloned()
         }
     }
 }
-

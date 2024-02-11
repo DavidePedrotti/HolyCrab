@@ -83,22 +83,22 @@ pub mod debug {
         /// * `content` - the content that is getting printed
         fn print_content(content: Content) {
             print!("{}", match content {
-                Content::Bank(_) => { "A " }
-                Content::Bin(_) => { "I " }
-                Content::Building => { "B " }
-                Content::Bush(_) => { "H " }
-                Content::Crate(_) => { "C " }
-                Content::Coin(_) => { "O " }
-                Content::Fire => { "F " }
-                Content::Fish(_) => { "P " }
-                Content::Garbage(_) => { "G " }
-                Content::JollyBlock(_) => { "J " }
-                Content::Market(_) => { "M " }
-                Content::Rock(_) => { "R " }
-                Content::Scarecrow => { "S " }
-                Content::Tree(_) => { "T " }
-                Content::Water(_) => { "W " }
-                Content::None => { "+ " }
+                Content::Bank(_) => { "A ".yellow() }
+                Content::Bin(_) => { "I ".yellow() }
+                Content::Building => { "B ".yellow() }
+                Content::Bush(_) => { "H ".yellow() }
+                Content::Crate(_) => { "C ".yellow() }
+                Content::Coin(_) => { "O ".yellow() }
+                Content::Fire => { "F ".yellow() }
+                Content::Fish(_) => { "P ".yellow() }
+                Content::Garbage(_) => { "G ".yellow() }
+                Content::JollyBlock(_) => { "J ".yellow() }
+                Content::Market(_) => { "M ".yellow() }
+                Content::Rock(_) => { "R ".green() }
+                Content::Scarecrow => { "S ".yellow() }
+                Content::Tree(_) => { "T ".yellow() }
+                Content::Water(_) => { "W ".yellow() }
+                Content::None => { "+ ".yellow() }
             })
         }
         /// Prints the respective letter to the TileType given
