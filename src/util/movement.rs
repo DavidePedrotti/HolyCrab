@@ -35,7 +35,7 @@ pub mod movement {
                 let target_row = robot_row as i32 + row_offset;
                 let target_col = robot_col as i32 + col_offset;
 
-                if self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) {
+                if self.is_in_bounds(&map,target_row,target_col) && self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) {
                     let msg = format!("Failed to move {:?}", direction);
                     go(self,world,direction.clone()).expect(msg.as_str());
                 }
@@ -75,6 +75,11 @@ pub mod movement {
                 Direction::Down => (1,0),
                 Direction::Right => (0,1),
             }
+        }
+        pub fn is_in_bounds(&self, map: &Vec<Vec<Tile>>, row: i32, col: i32) -> bool {
+            let rows = map.len() as i32;
+            let cols = map[0].len() as i32;
+            row >= 0 && col >= 0 && row < rows && col < cols
         }
     }
 }

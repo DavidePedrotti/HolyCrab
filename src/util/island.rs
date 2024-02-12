@@ -19,9 +19,7 @@ pub mod island {
         ///
         /// A boolean corresponding to whether moving to that tile is possible or not
         fn is_valid_move(&self, map: &Vec<Vec<Tile>>, row: i32, col: i32, visited: &Vec<Vec<bool>>) -> bool {
-            let rows = map.len() as i32;
-            let cols = map[0].len() as i32;
-            row >= 0 && col >= 0 && row < rows && col < cols && self.is_walkable(&map[row as usize][col as usize].tile_type) && !visited[row as usize][col as usize]
+            self.is_in_bounds(map,row,col) && self.is_walkable(&map[row as usize][col as usize].tile_type) && !visited[row as usize][col as usize]
         }
 
         /// Implementation of the Depth-First Search algorithm

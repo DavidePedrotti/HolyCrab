@@ -131,7 +131,11 @@ pub mod debug {
                 let quantity = self.get_tile_cost(&map[row][col].tile_type);
 
                 // calling put to pave the bridge
-                let error = put(self, world, Content::Rock(0), quantity, direction.clone());
+                let error = if self.is_in_bounds(&map,row as i32,col as i32) && !self.is_walkable(&map[row][col].tile_type) {
+                    put(self, world, Content::Rock(0), quantity, direction.clone())
+                } else {
+                    Ok(0)
+                };
                 let _ = match error {
                     Ok(_) => {
                         self.play_sound_paving(&map[row][col].tile_type);
