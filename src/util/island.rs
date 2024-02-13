@@ -17,7 +17,7 @@ pub mod island {
         ///
         /// # Returns
         ///
-        /// A boolean corresponding to whether moving to that tile is possible or not
+        /// A bool corresponding to whether moving to that tile is possible or not
         fn is_valid_move(&self, map: &Vec<Vec<Tile>>, row: i32, col: i32, visited: &Vec<Vec<bool>>) -> bool {
             self.is_in_bounds(map,row,col) && self.is_walkable(&map[row as usize][col as usize].tile_type) && !visited[row as usize][col as usize]
         }
@@ -55,7 +55,7 @@ pub mod island {
         /// # Returns
         ///
         /// A vector of islands
-        pub fn find_island_cells(&self, map: &Vec<Vec<Tile>>) -> Vec<Vec<(i32, i32)>> {
+        pub fn get_islands(&self, map: &Vec<Vec<Tile>>) -> Vec<Vec<(i32, i32)>> {
             let rows = map.len() as i32;
             let cols = map[0].len() as i32;
             let mut visited = vec![vec![false; cols as usize]; rows as usize];
@@ -82,7 +82,7 @@ pub mod island {
         /// # Returns
         ///
         /// An Option of Vec of tuples. The vector represents the closest island to the robot
-        pub fn find_closest_island(&mut self, islands:  &mut Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>> {
+        pub fn get_closest_island_to_robot(&mut self, islands:  &mut Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>> {
             let (robot_row, robot_col) = self.get_coordinates();
 
             let robot_island = self.get_robot_island(&islands);
@@ -110,14 +110,15 @@ pub mod island {
         /// # Returns
         ///
         /// An option of coordinates indicating the closest walkable tiles that would connect the two islands if there was a bridge
-        pub fn find_closest_points(&self, map: &Vec<Vec<Tile>>, robot_island: Vec<(i32, i32)>, target_island: Vec<(i32, i32)>) -> Option<((i32, i32), (i32, i32))> {
+        pub fn get_closest_points(&self, map: &Vec<Vec<Tile>>, robot_island: Vec<(i32, i32)>, target_island: Vec<(i32, i32)>) -> Option<((i32, i32), (i32, i32))> {
 
             let mut closest_coords = None;
             let mut min_distance = i32::MAX;
 
             for (target_row,target_col) in target_island {
                 for (row,col) in &robot_island {
-                    if self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) && self.is_walkable(&map[*row as usize][*col as usize].tile_type) {
+                    // if the coordinates exist and the Tile is walkable then we check the distance between the target and all the robot's island coordinates
+                    if self.is_in_bounds(&map,*row,*col) && self.is_walkable(&map[*row as usize][*col as usize].tile_type) {
                         let distance = (target_row - row).abs() + (target_col - col).abs();
                         if distance < min_distance {
                             min_distance = distance;

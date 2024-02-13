@@ -17,10 +17,11 @@ pub mod movement {
         pub fn move_to_coords(&mut self, world: &mut World, map: &Vec<Vec<Tile>>, coordinates: (i32,i32)) {
             let (row,col) = coordinates;
 
+            // retrieving the action vector, which will indicate the robot the directions to go to
             let action_vec = match self.lssf.get_action_vec(row as usize,col as usize){
                 Ok(vec) => vec,
                 Err(e) => {
-                    println!("Error while getting the action vector: {:?}", e);
+                    self.catch_lib_error(world,e);
                     return ();
                 }
             };
@@ -35,11 +36,11 @@ pub mod movement {
                 let target_row = robot_row as i32 + row_offset;
                 let target_col = robot_col as i32 + col_offset;
 
+                // checking if the coordinates are within bounds and if the tile_type is walkable
                 if self.is_in_bounds(&map,target_row,target_col) && self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) {
                     let msg = format!("Failed to move {:?}", direction);
                     go(self,world,direction.clone()).expect(msg.as_str());
                 }
-
             }
         }
         /// Checks if a tile is walkable or not
@@ -76,6 +77,17 @@ pub mod movement {
                 Direction::Right => (0,1),
             }
         }
+        /// Checks if the row value and the column value are within the matrix bounds
+        ///
+        /// # Arguments
+        ///
+        /// * `map` - the known world
+        /// * `row` - the row to be verified
+        /// * `col` - the column to be verified
+        ///
+        /// # Returns
+        ///
+        /// A bool representing whether the values are in bounds or not
         pub fn is_in_bounds(&self, map: &Vec<Vec<Tile>>, row: i32, col: i32) -> bool {
             let rows = map.len() as i32;
             let cols = map[0].len() as i32;

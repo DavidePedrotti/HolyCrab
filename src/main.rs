@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::time::Duration;
 use std::thread::sleep;
+use colored::Colorize;
 
 // tools necessary
 use robotics_lib::world::world_generator::Generator;
@@ -14,12 +15,18 @@ fn main() {
     wg.gen();
 
     let robot = MinerRobot::new();
+    let game_over = robot.game_over.clone();
+
     let run = Runner::new( Box::new(robot), &mut wg);
 
     match run {
         Ok(mut running) => {
             loop{
                 let _ = running.game_tick();
+                let game_over_ref = game_over.borrow();
+                if *game_over_ref {
+                    break;
+                }
                 sleep(Duration::from_millis(2000))
             };
         }
@@ -28,4 +35,5 @@ fn main() {
             println!("{:?}", e);
         }
     }
+    println!("{}", "THE GAME ENDED!".green());
 }

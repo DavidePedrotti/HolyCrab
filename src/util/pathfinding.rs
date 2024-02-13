@@ -9,7 +9,11 @@ pub mod path_find {
     // tools
     use sense_and_find_by_rustafariani::Action;
     use bob_lib::tracker::*;
+    use colored::Colorize;
     use OwnerSheeps_Sound_Tool::functions::destroying_sound::play_sound_mining_rock;
+
+    const RANGE: usize = 2;
+    const DIRECTION: Direction = Direction::Up;
 
     impl MinerRobot {
         /// Moves the robot to a target tile and collects the specified Content present in that tile
@@ -24,11 +28,12 @@ pub mod path_find {
         /// If the coordinates are the same after calling the move it means that the content vector is empty.
         /// The way that this issue is handled is by:
         /// - increasing the distance
-        /// - setting the self.scanned value to false in order to call the discover once again
+        /// - setting the scanned value to false in order to call the discover once again
         /// - getting all the content around the robot
         /// - trying to collect rocks
         /// we increase the distance and reset the scanned value to false in order to call the discover once again
         pub fn move_and_collect_content(&mut self, world: &mut World, content: Content) {
+
             // getting the vector that contains the cost to reach tiles from the robot's coordinates
             let vec = self.get_cost_vector_to_content(world, content);
 
@@ -39,13 +44,16 @@ pub mod path_find {
             let (new_row,new_col) = self.get_coordinates();
 
             if (row,col) == (new_row,new_col) {
-                println!("Increased scan");
-                const RANGE: usize = 2;
-                const DIRECTION: Direction = Direction::Up;
+                // increasing the scan of the spyglass and resetting the world_scanned value in order to scan it again
+                println!("{}", "Increased scan".green());
                 self.scan_distance += SCAN_INCREASE;
                 self.world_scanned = false;
+
+                // setting conditions to use the collect_rocks method and to end the game
                 self.collect_all(world,RANGE);
-                if self.scan_distance > (SCAN_INCREASE * 5) {
+                if self.scan_distance > (SCAN_INCREASE * 4) {
+                    self.game_is_over();
+                } else if self.scan_distance > (SCAN_INCREASE * 3) {
                     self.collect_rocks_inline(world,DIRECTION);
                 }
             }
@@ -62,14 +70,14 @@ pub mod path_find {
         /// A vector of tuples:
         /// - the first element represents the cost to reach the tile
         /// - the second element represents the coordinates of the tile
-        pub fn get_cost_vector_to_content(&mut self, world: &World, content: Content) -> Vec<(usize,(usize,usize))>{
+        pub fn get_cost_vector_to_content(&mut self, world: &mut World, content: Content) -> Vec<(usize,(usize,usize))>{
             let mut cost_vector: Vec<(usize,(usize,usize))> = Vec::new();
 
             let map = self.get_map_option(world);
             let (x,y) = self.get_coordinates();
 
             // updating both map and costs
-            self.update_lssf_map_and_cost(&map, x, y);
+            self.update_lssf_map_and_cost(world, &map, x, y);
 
             // getting the vector that contains all the coordinates of tiles that contain a specific content
             let content_vec = self.get_tiles_by_content(world,content);
@@ -82,9 +90,7 @@ pub mod path_find {
                             cost_vector.push((cost,(row,col)));
                         }
                     },
-                    None => {
-                        // println!("Unreachable tile")
-                    }
+                    None => {}
                 };
             }
 
@@ -102,7 +108,7 @@ pub mod path_find {
         ///
         /// # Notes
         ///
-        /// The robot moves until it reaches the tile near the target and then it destroys the target's content
+        /// The robot moves until it reaches the tile near the target, and then it destroys the target's content
         pub fn move_to_tile_destroy_content(&mut self, world: &mut World, vec: Vec<(usize, (usize, usize))>) {
             let (_cost,(x,y));
             // if the vector is not empty then we take the first element which is the one that costs less to go to
@@ -116,7 +122,7 @@ pub mod path_find {
             let action_vec = match self.lssf.get_action_vec(x,y){
                 Ok(vec) => vec,
                 Err(e) => {
-                    println!("Error while getting the action vector: {:?}", e);
+                    self.catch_lib_error(world,e);
                     return ();
                 }
             };
@@ -133,7 +139,7 @@ pub mod path_find {
                             self.goal_tracker.update_manual(GoalType::GetItems,Some(Content::Rock(1)),quantity);
                         }
                         Err(e) => {
-                            println!("Error while destroying content: {:?}", e);
+                            self.catch_lib_error(world,e);
                         }
                     } ;
                 }

@@ -16,7 +16,7 @@ pub mod world {
         ///
         /// The known world as a Vec<Vec<Tile>>
         pub fn get_map(&self, world: &World) -> Vec<Vec<Tile>> {
-            let robot_map = robot_map(world).expect("test");
+            let robot_map = robot_map(world).expect("Error while retrieving the map");
             let world_dim = robot_map.len();
             let default_tile = Tile {
                 tile_type: TileType::DeepWater,
@@ -52,7 +52,7 @@ pub mod world {
         ///
         /// The known world as a Vec<Vec<Option<Tile>>>
         pub fn get_map_option(&self, world: &World) -> Vec<Vec<Option<Tile>>> {
-            let robot_map = robot_map(world).expect("test");
+            let robot_map = robot_map(world).expect("Error while retrieving the map");
             let world_dim = robot_map.len();
             let default_tile = Tile {
                 tile_type: TileType::DeepWater,

@@ -1,8 +1,11 @@
+use std::cell::RefCell;
+
 // modules for MinerRobot
 mod util;
 
 // robotics lib
 use std::fmt::Debug;
+use std::rc::Rc;
 use std::usize;
 use robotics_lib::event::events::Event;
 use robotics_lib::interface::destroy;
@@ -15,10 +18,11 @@ use robotics_lib::energy::Energy;
 use robotics_lib::world::World;
 
 // tools
-use bessie::bessie::{road_paving_machine, State};
+use bessie::bessie::{road_paving_machine, RpmError, State};
 use bob_lib::tracker::GoalTracker;
 use OwnerSheeps_Sound_Tool::functions::weather_sounds::weather_sound;
 use pmp_collect_all::CollectAll;
+use robotics_lib::utils::LibError;
 use rust_and_furious_dynamo::dynamo::Dynamo;
 use sense_and_find_by_rustafariani::{Lssf};
 use spyglass::spyglass::Spyglass;
@@ -53,7 +57,8 @@ pub struct MinerRobot {
     pub scan_distance: usize,
     pub lssf: Lssf,
     pub world_scanned: bool,
-    pub state: RobotState
+    pub state: RobotState,
+    pub game_over: Rc<RefCell<bool>>
 }
 
 impl MinerRobot {
@@ -74,7 +79,8 @@ impl MinerRobot {
             scan_distance: SCAN_DISTANCE,
             lssf: Lssf::new(),
             world_scanned: false,
-            state: RobotState::CollectingRocks
+            state: RobotState::CollectingRocks,
+            game_over: Rc::new(RefCell::new(false))
         }
     }
     /// Creates a new instance of MinerRobot given its name
@@ -95,7 +101,8 @@ impl MinerRobot {
             scan_distance: SCAN_DISTANCE,
             lssf: Lssf::new(),
             world_scanned: false,
-            state: RobotState::CollectingRocks
+            state: RobotState::CollectingRocks,
+            game_over: Rc::new(RefCell::new(false))
         }
     }
 
@@ -109,7 +116,7 @@ impl MinerRobot {
     ///  * `world` - the world
     ///  * `distance` - the distance from the center within which the discovery is to take place
     ///  * `energy_budget` - the maximum amount of energy the tool can use
-    ///  * `threshold` - value that determines whether or not to discover a certain area
+    ///  * `threshold` - value that determines whether to discover a certain area
     ///
     /// # Returns
     ///
@@ -133,14 +140,14 @@ impl MinerRobot {
     /// * `map` - the map of the discovered world
     /// * `row` - the row coordinate from which we want the cost to be updated
     /// * `col` - the column coordinate from which we want the cost to be updated
-    fn update_lssf_map_and_cost(&mut self, map: &Vec<Vec<Option<Tile>>>, row: usize, col: usize) {
+    fn update_lssf_map_and_cost(&mut self, world: &mut World, map: &Vec<Vec<Option<Tile>>>, row: usize, col: usize) {
         self.lssf.update_map(&map);
         match self.lssf.update_cost(row,col) {
             Ok(()) => {
-                println!("Cost updated successfully")
+                println!("Lssf cost updated successfully")
             },
             Err(e) => {
-                println!("Error: {:?}", e)
+                self.catch_lib_error(world,e);
             }
         }
     }
@@ -156,7 +163,7 @@ impl MinerRobot {
                 println!("The Process ended correctly and we made a Road!")
             }
             Err(e) => {
-                println!("Error while making a road: {:?}", e)
+                self.catch_rpm_error(world,e);
             }
         }
     }
@@ -202,6 +209,51 @@ impl MinerRobot {
     /// The robot's coordinates as a tuple
     fn get_coordinates(&self) -> (usize,usize) {
         (self.robot.coordinate.get_row(),self.robot.coordinate.get_col())
+    }
+    /// Catches the LibError
+    ///
+    /// # Arguments
+    ///
+    /// * `world` - the world
+    /// * `error` - the LibError
+    pub fn catch_lib_error(&mut self, world: &mut World, error: LibError) {
+        match error {
+            LibError::NotEnoughEnergy => {
+                println!("Not enough energy, the robot will get its energy refilled");
+                self.recharge_energy(world);
+            },
+            LibError::OutOfBounds => println!("Out of bounds"),
+            LibError::NoContent => println!("No content"),
+            LibError::NotEnoughSpace(remainder) => println!("Not enough space: {}", remainder),
+            LibError::CannotDestroy => println!("Cannot destroy"),
+            LibError::NotCraftable => println!("Can't craft this item"),
+            LibError::NoMoreDiscovery => println!("Not enough discoverable tiles"),
+            _ => println!("Generic error: {:?}", error)
+        }
+    }
+    /// Catches the RpmError for the road paving machine
+    ///
+    /// # Arguments
+    ///
+    /// * `world` - the world
+    /// * `error` - the RpmError
+    pub fn catch_rpm_error(&mut self, world: &mut World, error: RpmError) {
+        match error {
+            RpmError::NotEnoughEnergy => {
+                println!("Not enough energy, the robot will get its energy refilled");
+                self.recharge_energy(world);
+            },
+            RpmError::CannotPlaceHere => println!("Cannot place content on the current tile"),
+            RpmError::OutOfBounds => println!("Out of bounds"),
+            RpmError::NotEnoughMaterial => println!("Not enough material"),
+            RpmError::NoRockHere => println!("No rock here"),
+            RpmError::MustDestroyContentFirst => println!("Must destroy content first"),
+            RpmError::UndefinedError => println!("Undefined error")
+        }
+    }
+    /// Sets the game_over value to true, ending the game
+    pub fn game_is_over(&mut self) {
+        self.game_over.replace(true);
     }
 }
 

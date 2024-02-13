@@ -4,7 +4,7 @@ pub mod debug {
 
     // robotics lib
     use robotics_lib::world::World;
-    use robotics_lib::world::tile::{Content, TileType};
+    use robotics_lib::world::tile::{Content, Tile, TileType};
     use robotics_lib::interface::robot_map;
 
     // other
@@ -43,18 +43,26 @@ pub mod debug {
             }
             println!();
         }
+        pub fn print_discovered_tiles_tile_type(&self, world: &World) {
+            let map = robot_map(world).unwrap();
+            if map.len() < 30 {
+                self.print_discovered_tiles_tile_type_unicode(&map);
+            } else {
+                self.print_discovered_tiles_tile_type_default(&map);
+            }
+        }
         /// Prints all the discovered tiles tile_type
         ///
         /// # Arguments
         ///
         /// * `world` - the world
-        pub fn print_discovered_tiles_tile_type(&self, world: &World) {
+        fn print_discovered_tiles_tile_type_default(&self, map: &Vec<Vec<Option<Tile>>>) {
             print!("- ");
-            for (i, _row) in robot_map(world).unwrap().iter().enumerate() {
+            for (i, _row) in map.iter().enumerate() {
                 print!("{} ", i % 10);
             }
             println!();
-            for (i, row) in robot_map(world).unwrap().iter().enumerate() {
+            for (i, row) in map.iter().enumerate() {
                 for (j, tile) in row.iter().enumerate() {
                     if j == 0 {
                         print!("{} ", i % 10);
@@ -68,6 +76,34 @@ pub mod debug {
                             }
                             Some(t) => {
                                 Self::print_tile_type(t.clone().tile_type)
+                            }
+                        };
+                    }
+                }
+                println!();
+            }
+            println!();
+        }
+        fn print_discovered_tiles_tile_type_unicode(&self, map: &Vec<Vec<Option<Tile>>>) {
+            print!("{:<4} ","- ");
+            for (i, _row) in map.iter().enumerate() {
+                print!("{:<4} ", i % 10);
+            }
+            println!();
+            for (i, row) in map.iter().enumerate() {
+                for (j, tile) in row.iter().enumerate() {
+                    if j == 0 {
+                        print!("{:<4} ", i % 10);
+                    }
+                    if i == self.robot.coordinate.get_row() && j == self.robot.coordinate.get_col() {
+                        print!("{:<4}","\u{1F916}");
+                    } else {
+                        match tile {
+                            None => {
+                                print!("{:<4} ","-")
+                            }
+                            Some(t) => {
+                                Self::print_tile_type_unicode(t.clone().tile_type)
                             }
                         };
                     }
@@ -114,11 +150,31 @@ pub mod debug {
                 TileType::Lava => { "L ".green() }
                 TileType::Mountain => { "M ".green() }
                 TileType::Sand => { "S ".green() }
-                TileType::ShallowWater => { "o ".green() }
+                TileType::ShallowWater => { "o ".blue() }
                 TileType::Snow => { "N ".green() }
                 TileType::Street => { "R ".red() }
                 TileType::Teleport(_) => { "T ".green() }
                 TileType::Wall => { "W ".green() }
+            })
+        }
+        /// Prints the respective letter to the TileType given in unicode
+        ///
+        /// # Arguments
+        ///
+        /// * `tile_type` - the TileType that is getting printed
+        fn print_tile_type_unicode(tile_type: TileType) {
+            print!("{:<4}", match tile_type {
+                TileType::DeepWater => { "\u{1F30A}"}
+                TileType::Grass => { "\u{1F33F}" }
+                TileType::Hill => { "\u{26F0}" }
+                TileType::Lava => { "\u{1F30B}"}
+                TileType::Mountain => { "\u{1F3D4}" }
+                TileType::Sand => { "\u{1F3D6}" }
+                TileType::ShallowWater => { "o " }
+                TileType::Snow => { "\u{2744}"}
+                TileType::Street => { "\u{1F309}"}
+                TileType::Teleport(_) => { "\u{1F504}" }
+                TileType::Wall => { "\u{1F6A1}" }
             })
         }
     }

@@ -13,8 +13,7 @@ pub mod debug {
     use OwnerSheeps_Sound_Tool::functions::put_sounds::{play_sound_rock_in_g_h_s_s, play_sound_rock_in_lava, play_sound_rock_in_water};
 
     impl MinerRobot {
-        /// Method that verifies if the robot has enough rocks to pave the bridge.
-        /// If true, it builds the bridge
+        /// Builds the bridge if the collected rocks are enough and if the target doesn't change with time
         ///
         /// # Arguments
         ///
@@ -22,23 +21,43 @@ pub mod debug {
         ///
         /// # Notes
         ///
-        /// - at first it finds the closest cell contained in the closest island
-        /// - then it calculates the amount of rocks needed to build the bridge
-        /// - if the robot has enough rocks it starts building the bridge
+        /// The robot performs a certain amount of iterations to make sure that the target is correct:
+        /// - we move the robot to the starting tile
+        /// - once the robot is on the starting tile we calculate the bridge points one more time:
+        ///     - if they change it means that the starting tile is somewhere else and we repeat the process
+        ///     - if they stay the same we start building the bridge
         pub fn pave_bridge(&mut self, world: &mut World) {
-            let (target_island_coords, robot_island_coords) = self.calculate_bridge_points(world);
+            let (mut target_island_coords, mut robot_island_coords) = self.calculate_bridge_points(world);
 
-            let rocks_to_build_bridge = self.get_paving_cost(&self.get_map(world), robot_island_coords, target_island_coords);
+            // we want to make sure that the target is the right one, so we iterate n amount of times
+            let mut iterations = 0;
+            let max_iterations = 10;
 
-            if self.rocks_collected >= rocks_to_build_bridge {
-                let (robot_row, robot_col) = self.get_coordinates();
-
+            while iterations < max_iterations {
+                let (robot_row,robot_col) = self.get_coordinates();
+                // checking the collected rock's amount
+                let rocks_to_build_bridge = self.get_paving_cost(&self.get_map(world), (robot_row as i32, robot_col as i32), target_island_coords);
+                if self.rocks_collected < rocks_to_build_bridge {
+                    break;
+                }
+                // if the robot is not on the starting tile to build the bridge, we move it there
                 if (robot_row as i32, robot_col as i32) != robot_island_coords {
                     self.move_to_coords(world, &self.get_map(world), (robot_row as i32, robot_col as i32));
                 }
-
-                self.start_building_bridge(world,target_island_coords);
-                self.rocks_collected -= rocks_to_build_bridge;
+                let (new_target_island_coords, new_robot_island_coords) = self.calculate_bridge_points(world);
+                if new_target_island_coords == target_island_coords {
+                    self.start_building_bridge(world, target_island_coords);
+                    self.rocks_collected -= rocks_to_build_bridge;
+                    break;
+                } else {
+                    target_island_coords = new_target_island_coords;
+                    robot_island_coords = new_robot_island_coords;
+                }
+                iterations += 1;
+            }
+            if iterations >= max_iterations {
+                println!("The target keeps on changing {}", max_iterations);
+                self.game_is_over();
             }
         }
         /// Starts building the bridge and sets the robot's state to PavingBridge
@@ -49,7 +68,7 @@ pub mod debug {
         /// * `(target_island_row,target_island_col)` - the target island's coordinates
         fn start_building_bridge(&mut self, world: &mut World, (target_island_row,target_island_col): (i32, i32)) {
             self.state = RobotState::PavingBridge;
-            self.build_along_row_and_col(world, &self.get_map(world), target_island_row, target_island_col);
+            self.build_along_row_and_col(world, target_island_row, target_island_col);
         }
         /// Calculates the coordinates that will be connected by the bridge
         ///
@@ -61,14 +80,14 @@ pub mod debug {
         ///
         /// A tuple of coordinates indicating the two coordinates that will be at the start and at the end of the bridge
         fn calculate_bridge_points(&mut self, world: &World) -> ((i32,i32),(i32,i32)) {
-            let mut islands = self.find_island_cells(&self.get_map(world));
+            let mut islands = self.get_islands(&self.get_map(world));
             let discovered_tiles = self.get_map(world);
 
             // getting both the robot's island and the target island
             let robot_island = self.get_robot_island(&islands).unwrap_or_else(|| vec![]);
-            let target_island = self.find_closest_island(&mut islands).unwrap_or_else(|| vec![(0, 0)]);
+            let target_island = self.get_closest_island_to_robot(&mut islands).unwrap_or_else(|| vec![(0, 0)]);
 
-            self.find_closest_points(&discovered_tiles,robot_island, target_island).unwrap_or_else(|| ((0, 0), (0, 0)))
+            self.get_closest_points(&discovered_tiles, robot_island, target_island).unwrap_or_else(|| ((0, 0), (0, 0)))
         }
         /// Calls the method to build a bridge on both rows and columns
         ///
@@ -83,29 +102,26 @@ pub mod debug {
         ///
         /// Given the distance between the robot's row coordinate and the target's it calls the build_to_direction() method.
         /// The same goes for the column.
-        fn build_along_row_and_col(&mut self, world: &mut World, map: &Vec<Vec<Tile>>, row: i32, col: i32) {
+        fn build_along_row_and_col(&mut self, world: &mut World, row: i32, col: i32) {
             let (robot_row,robot_col) = self.get_coordinates();
             let row_distance = robot_row as i32 - row;
             let col_distance = robot_col as i32 - col;
-            let mut row_direction = Direction::Up;
-            let mut col_direction = Direction::Right;
-
-            if row_distance < 0 {
-                row_direction = Direction::Down;
-            } else if row_distance > 0 {
-                row_direction = Direction::Up;
-            }
-            if col_distance < 0 {
-                col_direction = Direction::Right;
-            } else if col_distance > 0 {
-                col_direction = Direction::Left;
-            }
 
             // building following rows
-            self.build_to_direction(world,map,row_distance,row_direction);
-
+            if row_distance < 0 {
+                self.build_to_direction(world,row_distance,&Direction::Down);
+            } else if row_distance > 0 {
+                self.build_to_direction(world,row_distance,&Direction::Up);
+            }
             // building following columns
-            self.build_to_direction(world,map,col_distance,col_direction);
+            if col_distance < 0 {
+                self.build_to_direction(world,col_distance,&Direction::Right);
+            } else if col_distance > 0 {
+                self.build_to_direction(world,col_distance,&Direction::Left);
+            }
+            if row_distance == 0 && col_distance == 0 {
+                println!("Cannot build since the robot is already on the target tile");
+            }
         }
         /// Builds a bridge given a direction and a distance
         ///
@@ -115,11 +131,12 @@ pub mod debug {
         /// * `map` - the known world
         /// * `distance` - the amount of blocks that are getting paved
         /// * `direction` - the direction that the robot will pave on
-        fn build_to_direction(&mut self, world: &mut World, map: &Vec<Vec<Tile>>, distance: i32, direction: Direction) {
+        fn build_to_direction(&mut self, world: &mut World, distance: i32, direction: &Direction) {
             let mut distance_left = distance.abs();
 
             // iterating through all the tiles that need to connect the robot to the target except for the last one which is the target tile
             while distance_left > 1 {
+                let map = self.get_map(world);
                 let (mut row,mut col) = self.get_coordinates();
 
                 // calculating the offset in order to find the next tile's coordinates
@@ -130,7 +147,7 @@ pub mod debug {
                 // calculating the amount of rocks needed to build the bridge
                 let quantity = self.get_tile_cost(&map[row][col].tile_type);
 
-                // calling put to pave the bridge
+                // calling put to pave the bridge if the coordinates are within bounds and the tile is not walkable
                 let error = if self.is_in_bounds(&map,row as i32,col as i32) && !self.is_walkable(&map[row][col].tile_type) {
                     put(self, world, Content::Rock(0), quantity, direction.clone())
                 } else {
@@ -139,13 +156,14 @@ pub mod debug {
                 let _ = match error {
                     Ok(_) => {
                         self.play_sound_paving(&map[row][col].tile_type);
+                        self.manage_energy(world);
                         // in case of error a message is returned
                         let msg = format!("Failed to move {:?}", direction);
                         go(self,world,direction.clone()).expect(msg.as_str());
                         Ok(())
                     },
                     Err(e) => {
-                        println!("An error occurred while building the bridge: {:?}", e);
+                        self.catch_lib_error(world, e);
                         Err(())
                     }
                 };
@@ -158,7 +176,8 @@ pub mod debug {
         /// # Arguments
         ///
         /// * `map` - the known map
-        /// * `(row,col)` - the target's coordinates
+        /// * `(robot_row,robot_col)` - the robot's coordinates
+        /// * `(island_row, island_col)` - the target's coordinates
         ///
         /// # Returns
         ///
@@ -166,7 +185,7 @@ pub mod debug {
         pub fn get_paving_cost(&mut self, map: &Vec<Vec<Tile>>, (robot_row,robot_col): (i32,i32), (island_row, island_col): (i32, i32)) -> usize {
             // initializing the total cost variable and the tmp_cost (indicates the last evaluated cost)
             let mut cost = 0;
-            let mut tmp_cost = 0;
+            let mut curr_cost = 0;
 
             let (mut curr_row, mut curr_col) = (robot_row,robot_col);
 
@@ -189,15 +208,15 @@ pub mod debug {
                     curr_col
                 };
 
-                tmp_cost = self.get_tile_cost(&map[next_row as usize][next_col as usize].tile_type);
-                cost += tmp_cost;
+                curr_cost = self.get_tile_cost(&map[next_row as usize][next_col as usize].tile_type);
+                cost += curr_cost;
 
                 curr_row = next_row;
                 curr_col = next_col;
             }
             // subtracting the tmp_cost since it is the cost of the last tile which is the target tile
             // and the robot doesn't need to build a bridge there
-            cost-tmp_cost
+            cost- curr_cost
         }
         /// Calls the sound tool based on the tile_type
         fn play_sound_paving(&self, tile_type: &TileType) {
