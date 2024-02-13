@@ -43,6 +43,7 @@ pub mod debug {
             }
             println!();
         }
+        /// Decides whether to print the tiles tile_type in unicode or not based on the world dimension
         pub fn print_discovered_tiles_tile_type(&self, world: &World) {
             let map = robot_map(world).unwrap();
             if map.len() < 30 {
@@ -84,6 +85,11 @@ pub mod debug {
             }
             println!();
         }
+        /// Prints all the discovered tiles tile_type in unicode
+        ///
+        /// # Arguments
+        ///
+        /// * `world` - the world
         fn print_discovered_tiles_tile_type_unicode(&self, map: &Vec<Vec<Option<Tile>>>) {
             print!("{:<4} ","- ");
             for (i, _row) in map.iter().enumerate() {

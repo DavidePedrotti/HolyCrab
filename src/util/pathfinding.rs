@@ -53,6 +53,7 @@ pub mod path_find {
                 self.collect_all(world,RANGE);
                 if self.scan_distance > (SCAN_INCREASE * 4) {
                     self.game_is_over();
+                    println!("{:?}", self);
                 } else if self.scan_distance > (SCAN_INCREASE * 3) {
                     self.collect_rocks_inline(world,DIRECTION);
                 }

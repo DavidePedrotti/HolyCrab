@@ -55,9 +55,11 @@ pub mod debug {
                 }
                 iterations += 1;
             }
+            // the game ends if there have been too many iterations without finding the correct tile
             if iterations >= max_iterations {
                 println!("The target keeps on changing {}", max_iterations);
                 self.game_is_over();
+                println!("{:?}", self);
             }
         }
         /// Starts building the bridge and sets the robot's state to PavingBridge

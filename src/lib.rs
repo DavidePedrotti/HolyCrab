@@ -20,6 +20,7 @@ use robotics_lib::world::World;
 // tools
 use bessie::bessie::{road_paving_machine, RpmError, State};
 use bob_lib::tracker::GoalTracker;
+use colored::Colorize;
 use OwnerSheeps_Sound_Tool::functions::weather_sounds::weather_sound;
 use pmp_collect_all::CollectAll;
 use robotics_lib::utils::LibError;
@@ -312,16 +313,19 @@ impl Runnable for MinerRobot {
 /// Implementing the Debug trait for the MinerRobot
 impl Debug for MinerRobot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\n{}'s STATS\n\
+        write!(f, "{}",
+               format!("{}'s STATS\n\
                - Coordinates: {:?} \n\
                - Energy: {:?} \n\
                - Goal_tracker: \n \
                     \t - Goals: {:?} \n \
-                    \t - Completed: {:?} \n\
+                    \t - Completed: {} \n\
                - Rocks collected: {:?} \n\
                - State: {:?} \n",
-               self.name,self.get_coordinates(), self.robot.energy.get_energy_level(),self.goal_tracker.get_goals(),
-               self.goal_tracker.get_completed_number(), self.rocks_collected, self.state
+                       self.name, self.get_coordinates(), self.robot.energy.get_energy_level(),
+                       self.goal_tracker.get_goals(), self.goal_tracker.get_completed_number(),
+                       self.rocks_collected, self.state
+               ).green()
         )
     }
 }
