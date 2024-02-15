@@ -146,6 +146,7 @@ pub mod path_find {
                 }
                 // moving the robot to Direction and returning an error message in case of failure
                 let msg = format!("Failed to move {:?}", direction);
+                self.manage_energy(world);
                 go(self,world,direction.clone()).expect(msg.as_str());
             }
         }

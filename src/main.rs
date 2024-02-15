@@ -24,6 +24,7 @@ fn main() {
             loop{
                 let _ = running.game_tick();
                 let game_over_ref = game_over.borrow();
+                // if the game_over value is true then the game ends
                 if *game_over_ref {
                     break;
                 }

@@ -39,6 +39,7 @@ pub mod movement {
                 // checking if the coordinates are within bounds and if the tile_type is walkable
                 if self.is_in_bounds(&map,target_row,target_col) && self.is_walkable(&map[target_row as usize][target_col as usize].tile_type) {
                     let msg = format!("Failed to move {:?}", direction);
+                    self.manage_energy(world);
                     go(self,world,direction.clone()).expect(msg.as_str());
                 }
             }

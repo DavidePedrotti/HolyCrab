@@ -24,7 +24,7 @@ pub mod debug {
         /// The robot performs a certain amount of iterations to make sure that the target is correct:
         /// - we move the robot to the starting tile
         /// - once the robot is on the starting tile we calculate the bridge points one more time:
-        ///     - if they change it means that the starting tile is somewhere else and we repeat the process
+        ///     - if they change it means that the starting tile is somewhere else, and we repeat the process
         ///     - if they stay the same we start building the bridge
         pub fn pave_bridge(&mut self, world: &mut World) {
             let (mut target_island_coords, mut robot_island_coords) = self.calculate_bridge_points(world);
@@ -36,13 +36,13 @@ pub mod debug {
             while iterations < max_iterations {
                 let (robot_row,robot_col) = self.get_coordinates();
                 // checking the collected rock's amount
-                let rocks_to_build_bridge = self.get_paving_cost(&self.get_map(world), (robot_row as i32, robot_col as i32), target_island_coords);
+                let rocks_to_build_bridge = self.get_paving_cost(&self.get_map(world), robot_island_coords, target_island_coords);
                 if self.rocks_collected < rocks_to_build_bridge {
                     break;
                 }
                 // if the robot is not on the starting tile to build the bridge, we move it there
                 if (robot_row as i32, robot_col as i32) != robot_island_coords {
-                    self.move_to_coords(world, &self.get_map(world), (robot_row as i32, robot_col as i32));
+                    self.move_to_coords(world, &self.get_map(world), robot_island_coords);
                 }
                 let (new_target_island_coords, new_robot_island_coords) = self.calculate_bridge_points(world);
                 if new_target_island_coords == target_island_coords {
@@ -184,7 +184,7 @@ pub mod debug {
         /// # Returns
         ///
         /// The cost of building a bridge from the robot's coordinates to the target's
-        pub fn get_paving_cost(&mut self, map: &Vec<Vec<Tile>>, (robot_row,robot_col): (i32,i32), (island_row, island_col): (i32, i32)) -> usize {
+        pub fn get_paving_cost(&self, map: &Vec<Vec<Tile>>, (robot_row,robot_col): (i32,i32), (island_row, island_col): (i32, i32)) -> usize {
             // initializing the total cost variable and the tmp_cost (indicates the last evaluated cost)
             let mut cost = 0;
             let mut curr_cost = 0;
@@ -192,8 +192,8 @@ pub mod debug {
             let (mut curr_row, mut curr_col) = (robot_row,robot_col);
 
             // loop through all the coordinates that separate the current coordinates to the target's
-            while (island_row, island_col) != (curr_row, curr_col) {
-                // calculating the next row and next column in order to find the cost to pave the next Tile
+            // since the robot builds first along rows and then along columns, we start calculating the rows first
+            while curr_row != island_row {
                 let next_row = if (curr_row) < island_row {
                     curr_row + 1
                 } else if (curr_row) > island_row {
@@ -201,7 +201,11 @@ pub mod debug {
                 } else {
                     curr_row
                 };
-
+                curr_cost = self.get_tile_cost(&map[next_row as usize][curr_col as usize].tile_type);
+                cost += curr_cost;
+                curr_row = next_row;
+            }
+            while curr_col != island_col {
                 let next_col = if (curr_col) < island_col {
                     curr_col + 1
                 } else if (curr_col) > island_col {
@@ -209,16 +213,13 @@ pub mod debug {
                 } else {
                     curr_col
                 };
-
-                curr_cost = self.get_tile_cost(&map[next_row as usize][next_col as usize].tile_type);
+                curr_cost = self.get_tile_cost(&map[curr_row as usize][next_col as usize].tile_type);
                 cost += curr_cost;
-
-                curr_row = next_row;
                 curr_col = next_col;
             }
-            // subtracting the tmp_cost since it is the cost of the last tile which is the target tile
+            // subtracting the curr_cost since it is the cost of the last tile which is the target tile
             // and the robot doesn't need to build a bridge there
-            cost- curr_cost
+            cost-curr_cost
         }
         /// Calls the sound tool based on the tile_type
         fn play_sound_paving(&self, tile_type: &TileType) {

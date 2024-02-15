@@ -1,12 +1,12 @@
 use std::cell::RefCell;
+use std::rc::Rc;
+use std::fmt::Debug;
+use std::usize;
 
 // modules for MinerRobot
 mod util;
 
 // robotics lib
-use std::fmt::Debug;
-use std::rc::Rc;
-use std::usize;
 use robotics_lib::event::events::Event;
 use robotics_lib::interface::destroy;
 use robotics_lib::interface::Direction;
@@ -37,7 +37,7 @@ const ENERGY_BUDGET: usize = 300;
 const THRESHOLD: f64 = 0.5;
 
 // scan distance and increase (indicates how much the distance will increase if changed)
-const SCAN_DISTANCE: usize = 10;
+pub const SCAN_DISTANCE: usize = 10;
 const SCAN_INCREASE: usize = 10;
 
 // energy threshold, the robot's energy cannot get lower than the threshold
@@ -208,7 +208,7 @@ impl MinerRobot {
     /// # Returns
     ///
     /// The robot's coordinates as a tuple
-    fn get_coordinates(&self) -> (usize,usize) {
+    pub fn get_coordinates(&self) -> (usize,usize) {
         (self.robot.coordinate.get_row(),self.robot.coordinate.get_col())
     }
     /// Catches the LibError
