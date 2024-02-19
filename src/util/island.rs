@@ -77,7 +77,7 @@ pub mod island {
         ///
         /// # Arguments
         ///
-        /// * `islands` - A vector containing all the islands represented as vectors of (i32,i32)
+        /// * `islands` - the discovered islands
         ///
         /// # Returns
         ///
@@ -103,6 +103,7 @@ pub mod island {
         /// Finds the closest distance between the robot's island and the target island
         ///
         /// # Arguments
+        ///
         /// * `map` - the known world
         /// * `robot_island` - the island where the robot stands
         /// * `target_island` - the closest island to the robot

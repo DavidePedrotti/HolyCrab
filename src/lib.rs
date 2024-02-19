@@ -53,12 +53,12 @@ pub enum RobotState {
 pub struct MinerRobot {
     pub robot: Robot,
     pub name: String,
+    pub state: RobotState,
     pub goal_tracker: GoalTracker,
     pub rocks_collected: usize,
     pub scan_distance: usize,
     pub lssf: Lssf,
     pub world_scanned: bool,
-    pub state: RobotState,
     pub game_over: Rc<RefCell<bool>>
 }
 
@@ -75,12 +75,12 @@ impl MinerRobot {
         Self {
             robot: Robot::new(),
             name: String::from("The default miner"),
+            state: RobotState::CollectingRocks,
             goal_tracker: GoalTracker::new(),
             rocks_collected: 0,
             scan_distance: SCAN_DISTANCE,
             lssf: Lssf::new(),
             world_scanned: false,
-            state: RobotState::CollectingRocks,
             game_over: Rc::new(RefCell::new(false))
         }
     }
@@ -97,12 +97,12 @@ impl MinerRobot {
         Self {
             robot: Robot::new(),
             name,
+            state: RobotState::CollectingRocks,
             goal_tracker: GoalTracker::new(),
             rocks_collected: 0,
             scan_distance: SCAN_DISTANCE,
             lssf: Lssf::new(),
             world_scanned: false,
-            state: RobotState::CollectingRocks,
             game_over: Rc::new(RefCell::new(false))
         }
     }
@@ -262,22 +262,16 @@ impl Runnable for MinerRobot {
     fn process_tick(&mut self, world: &mut World) {
         weather_sound(world);
 
-        // scanning the area around the robot once
         self.scan_world(world,self.scan_distance);
 
-        // managing the creation/deletion of goals
         self.handle_goals();
 
-        // self.print_discovered_tiles_content(&world);
         self.print_discovered_tiles_tile_type(&world);
 
-        // moving and collecting rocks
         self.move_and_collect_content(world, Content::Rock(1));
 
-        // building a bridge if possible
         self.pave_bridge(world);
 
-        // if the robot's energy drops below a certain threshold it recharges
         self.manage_energy(world);
     }
     #[allow(dead_code)]

@@ -35,12 +35,12 @@ pub mod path_find {
         pub fn move_and_collect_content(&mut self, world: &mut World, content: Content) {
 
             // getting the vector that contains the cost to reach tiles from the robot's coordinates
-            let vec = self.get_cost_vector_to_content(world, content);
+            let vec = self.get_cost_vector_to_reach_content(world, content);
 
             // moving the robot on the target tile and collecting the content
             let (row,col) = self.get_coordinates();
             self.state = RobotState::CollectingRocks;
-            self.move_to_tile_destroy_content(world, vec);
+            self.move_to_tile_and_destroy_content(world, vec);
             let (new_row,new_col) = self.get_coordinates();
 
             if (row,col) == (new_row,new_col) {
@@ -71,7 +71,7 @@ pub mod path_find {
         /// A vector of tuples:
         /// - the first element represents the cost to reach the tile
         /// - the second element represents the coordinates of the tile
-        pub fn get_cost_vector_to_content(&mut self, world: &mut World, content: Content) -> Vec<(usize,(usize,usize))>{
+        pub fn get_cost_vector_to_reach_content(&mut self, world: &mut World, content: Content) -> Vec<(usize, (usize, usize))>{
             let mut cost_vector: Vec<(usize,(usize,usize))> = Vec::new();
 
             let map = self.get_map_option(world);
@@ -110,7 +110,7 @@ pub mod path_find {
         /// # Notes
         ///
         /// The robot moves until it reaches the tile near the target, and then it destroys the target's content
-        pub fn move_to_tile_destroy_content(&mut self, world: &mut World, vec: Vec<(usize, (usize, usize))>) {
+        pub fn move_to_tile_and_destroy_content(&mut self, world: &mut World, vec: Vec<(usize, (usize, usize))>) {
             let (_cost,(x,y));
             // if the vector is not empty then we take the first element which is the one that costs less to go to
             if vec.len() > 0 {

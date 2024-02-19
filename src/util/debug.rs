@@ -44,6 +44,10 @@ pub mod debug {
             println!();
         }
         /// Decides whether to print the tiles tile_type in unicode or not based on the world dimension
+        ///
+        /// # Arguments
+        ///
+        /// * `world` - the world
         pub fn print_discovered_tiles_tile_type(&self, world: &World) {
             let map = robot_map(world).unwrap();
             if map.len() < 30 {
@@ -56,7 +60,7 @@ pub mod debug {
         ///
         /// # Arguments
         ///
-        /// * `world` - the world
+        /// * `map` - the known world
         fn print_discovered_tiles_tile_type_default(&self, map: &Vec<Vec<Option<Tile>>>) {
             print!("- ");
             for (i, _row) in map.iter().enumerate() {
@@ -89,7 +93,7 @@ pub mod debug {
         ///
         /// # Arguments
         ///
-        /// * `world` - the world
+        /// * `map` - the known world
         fn print_discovered_tiles_tile_type_unicode(&self, map: &Vec<Vec<Option<Tile>>>) {
             print!("{:<4} ","- ");
             for (i, _row) in map.iter().enumerate() {
@@ -176,7 +180,7 @@ pub mod debug {
                 TileType::Lava => { "\u{1F30B}"}
                 TileType::Mountain => { "\u{1F3D4}" }
                 TileType::Sand => { "\u{1F3D6}" }
-                TileType::ShallowWater => { "o " }
+                TileType::ShallowWater => { "\u{1F4A7}" }
                 TileType::Snow => { "\u{2744}"}
                 TileType::Street => { "\u{1F309}"}
                 TileType::Teleport(_) => { "\u{1F504}" }

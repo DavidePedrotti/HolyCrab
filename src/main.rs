@@ -28,7 +28,7 @@ fn main() {
                 if *game_over_ref {
                     break;
                 }
-                sleep(Duration::from_millis(2000))
+                sleep(Duration::from_millis(1000))
             };
         }
         Err(e) => {

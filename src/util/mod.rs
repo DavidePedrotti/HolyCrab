@@ -1,8 +1,8 @@
-pub mod debug;
-pub mod goal;
-pub mod pathfinding;
-pub mod world;
-pub mod island;
-pub mod bridge;
-pub mod discovery;
-pub mod movement;
+mod debug;
+mod goal;
+mod pathfinding;
+mod world;
+mod island;
+mod bridge;
+mod discovery;
+mod movement;

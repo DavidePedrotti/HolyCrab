@@ -8,7 +8,7 @@ pub mod discovery {
         ///
         /// # Arguments
         ///
-        /// * `world` - the known world
+        /// * `world` - the world
         /// * `distance` - the distance from the robot, indicating the area to discover
         pub fn scan_world(&mut self, world: &mut World, distance: usize) {
             if !self.world_scanned {
@@ -20,7 +20,7 @@ pub mod discovery {
         ///
         /// # Arguments
         ///
-        /// * `world` - the known world
+        /// * `world` - the world
         /// * `distance` - the distance from the robot, indicating the area to discover
         fn discover_world(&mut self, world: &mut World, distance: usize) {
             // generating a new spyglass by setting an energy budget and a threshold

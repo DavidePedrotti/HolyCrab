@@ -27,7 +27,7 @@ pub mod debug {
         ///     - if they change it means that the starting tile is somewhere else, and we repeat the process
         ///     - if they stay the same we start building the bridge
         pub fn pave_bridge(&mut self, world: &mut World) {
-            let (mut target_island_coords, mut robot_island_coords) = self.calculate_bridge_points(world);
+            let (mut target_island_coords, mut robot_island_coords) = self.get_bridge_points(world);
 
             // we want to make sure that the target is the right one, so we iterate n amount of times
             let mut iterations = 0;
@@ -44,7 +44,7 @@ pub mod debug {
                 if (robot_row as i32, robot_col as i32) != robot_island_coords {
                     self.move_to_coords(world, &self.get_map(world), robot_island_coords);
                 }
-                let (new_target_island_coords, new_robot_island_coords) = self.calculate_bridge_points(world);
+                let (new_target_island_coords, new_robot_island_coords) = self.get_bridge_points(world);
                 if new_target_island_coords == target_island_coords {
                     self.start_building_bridge(world, target_island_coords);
                     self.rocks_collected -= rocks_to_build_bridge;
@@ -81,7 +81,7 @@ pub mod debug {
         /// # Returns
         ///
         /// A tuple of coordinates indicating the two coordinates that will be at the start and at the end of the bridge
-        fn calculate_bridge_points(&mut self, world: &World) -> ((i32,i32),(i32,i32)) {
+        fn get_bridge_points(&mut self, world: &World) -> ((i32, i32), (i32, i32)) {
             let mut islands = self.get_islands(&self.get_map(world));
             let discovered_tiles = self.get_map(world);
 
@@ -96,7 +96,6 @@ pub mod debug {
         /// # Arguments
         ///
         /// * `world` - the world
-        /// * `map` - the known world
         /// * `row` - the target's row
         /// * `col` - the target's column
         ///
@@ -130,7 +129,6 @@ pub mod debug {
         /// # Arguments
         ///
         /// * `world` - the world
-        /// * `map` - the known world
         /// * `distance` - the amount of blocks that are getting paved
         /// * `direction` - the direction that the robot will pave on
         fn build_to_direction(&mut self, world: &mut World, distance: i32, direction: &Direction) {
