@@ -89,7 +89,7 @@ pub mod island {
 
             let robot_island = self.get_robot_island(&islands);
 
-            islands.retain(|island| island != &robot_island.clone().unwrap());
+            islands.retain(|island| island != &robot_island.clone().unwrap_or(vec![(0,0)]));
 
             if let Some(_robot_island) = robot_island {
                 // finding the island with the coordinate that is closer to the robot
