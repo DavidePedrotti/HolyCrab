@@ -1,4 +1,6 @@
 pub mod island {
+    use rayon::prelude::*;
+
     // MinerRobot
     use crate::{MinerRobot};
 
@@ -91,8 +93,8 @@ pub mod island {
 
             if let Some(_robot_island) = robot_island {
                 // finding the island with the coordinate that is closer to the robot
-                let closest_island = islands.iter().min_by_key(|island| {
-                    island.iter().map(|(row, col)| (row - robot_row as i32).abs() + (col - robot_col as i32).abs()).min().unwrap()
+                let closest_island = islands.par_iter().min_by_key(|island| {
+                    island.par_iter().map(|(row, col)| (row - robot_row as i32).abs() + (col - robot_col as i32).abs()).min().unwrap()
                 });
 
                 closest_island.cloned()
@@ -144,8 +146,8 @@ pub mod island {
         pub fn get_robot_island(&mut self, islands:  &Vec<Vec<(i32, i32)>>) -> Option<Vec<(i32, i32)>>{
             let (robot_row, robot_col) = self.get_coordinates();
 
-            islands.iter()
-                    .find(|island| island.contains(&(robot_row as i32, robot_col as i32)))
+            islands.par_iter()
+                    .find_any(|island| island.contains(&(robot_row as i32, robot_col as i32)))
                     .cloned()
         }
     }

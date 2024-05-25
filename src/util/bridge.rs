@@ -31,7 +31,7 @@ pub mod debug {
 
             // we want to make sure that the target is the right one, so we iterate n amount of times
             let mut iterations = 0;
-            let max_iterations = 10;
+            let max_iterations = 15;
 
             while iterations < max_iterations {
                 let (robot_row,robot_col) = self.get_coordinates();
